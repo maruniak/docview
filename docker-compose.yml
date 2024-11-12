@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  preview_service:
+    build: .
+    environment:
+      - DOCUMENTS_DIR=/app/documents
+      - PREVIEW_DIR=/app/previews
+      - CONVERTED_FORMAT=pdf
+      - API_PORT=${API_PORT}
+    ports:
+      - "${EXTERNAL_PORT}:${API_PORT}"
+    volumes:
+      - ./documents:/app/documents  # Mounted folder for documents
+      - ./previews:/app/previews    # Mounted folder for previews
+    restart: always

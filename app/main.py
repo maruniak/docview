@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Header
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import StreamingResponse, HTMLResponse
 import requests
 from docx import Document

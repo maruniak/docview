@@ -18,14 +18,13 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all headers.
 )
 
-@app.api_route("/preview/{file_path:path}", methods=["GET", "POST"])
-async def get_preview(file_path: str, x_access_token: str = Header(None)):
-    # Check if authentication is enabled
+@app.get("/preview/{file_path:path}")
+async def get_preview(file_path: str, token: str = Query(None)):
+    # Проверяем токен, если включена авторизация
     if settings.AUTHENTICATION_ENABLED:
-        # If enabled, validate the token
-        if x_access_token != settings.ACCESS_TOKEN:
+        if token != settings.ACCESS_TOKEN:
             raise HTTPException(status_code=401, detail="Unauthorized: Invalid token")
-
+        
     # Encode the path for the request to the Windows server
     encoded_path = requests.utils.quote(file_path, safe='')
     windows_server_url = f"http://{settings.WINDOWS_SERVER_IP}:{settings.WINDOWS_SERVER_PORT}/preview/{encoded_path}"

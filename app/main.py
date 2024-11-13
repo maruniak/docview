@@ -1,15 +1,31 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Header
 from fastapi.responses import StreamingResponse, HTMLResponse
 import requests
 from docx import Document
 import openpyxl
 import io
 from .config import settings
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
-@app.get("/preview/{file_path:path}")
-async def get_preview(file_path: str):
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins. Replace with specific origins if needed.
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all HTTP methods.
+    allow_headers=["*"],  # Allow all headers.
+)
+
+@app.api_route("/preview/{file_path:path}", methods=["GET", "POST"])
+async def get_preview(file_path: str, x_access_token: str = Header(None)):
+    # Check if authentication is enabled
+    if settings.AUTHENTICATION_ENABLED:
+        # If enabled, validate the token
+        if x_access_token != settings.ACCESS_TOKEN:
+            raise HTTPException(status_code=401, detail="Unauthorized: Invalid token")
+
     # Encode the path for the request to the Windows server
     encoded_path = requests.utils.quote(file_path, safe='')
     windows_server_url = f"http://{settings.WINDOWS_SERVER_IP}:{settings.WINDOWS_SERVER_PORT}/preview/{encoded_path}"
@@ -23,7 +39,7 @@ async def get_preview(file_path: str):
         content_type = response.headers.get('Content-Type', 'application/octet-stream')
         file_extension = file_path.split('.')[-1].lower()
 
-        if file_extension == 'pdf' or file_extension == 'jpg' or file_extension == 'txt':
+        if file_extension in ['pdf', 'jpg', 'txt']:
             # Stream PDF, JPG, and TXT files as usual
             return StreamingResponse(response.iter_content(chunk_size=1024), media_type=content_type)
 

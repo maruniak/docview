@@ -10,8 +10,9 @@ class Settings(BaseSettings):
     WINDOWS_SERVER_IP: str
     WINDOWS_SERVER_PORT: int
     API_PORT: int = 8000
+    ACCESS_TOKEN: str
+    AUTHENTICATION_ENABLED: bool    
     
-
     class Config:
         env_file = ".env"
 
